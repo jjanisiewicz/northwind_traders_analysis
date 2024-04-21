@@ -1,0 +1,41 @@
+/* top 10 sales products */
+with 	
+sales1 as 
+/* calculate sales */
+	(
+	select 
+		od.orderID 
+		,p.productName
+		,od.unitPrice * od.quantity as sales 	
+	from order_details od  
+	join products p on p.productID = od.productID 
+	order by 3 desc 
+	),
+/* calculate sum of sales */	
+sales2 as
+	(
+	select 
+		productName
+		,sum(sales)					as sum_sales
+	from sales1 
+	group by 1 
+	order by sum_sales desc 
+	),
+sales3 as
+/*calculate total sales and prc of total sales */
+	(
+	select 
+		productName	
+		,sum_sales
+		,sum(sum_sales) over ()		as total_sales		
+	from sales2	
+	group by 1, 2 
+	)	
+	select 
+		productName 
+		,sum_sales
+		,total_sales
+		,round((sum_sales / total_sales) * 100, 2 )	as prc_of_total_sales 
+	from sales3 	
+	limit 10 
+
